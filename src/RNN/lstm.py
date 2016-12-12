@@ -403,8 +403,8 @@ def train_lstm():
     parser.add_argument('--extend_data', type='bool', default=False, help='Load the extended version of the data.')
     parser.add_argument('--optimizer', type=str, default='adam', choices=('adam', 'adadelta', 'rmsprop'), help='Optimizer Algo.')
     parser.add_argument('--feature_size', type=int, default=300, help='Number of hidden units.')
-    parser.add_argument('--batch_size', type=int, default=16, help='Number of examples to batch in training.')
-    parser.add_argument('--valid_batch_size', type=int, default=64, help='Number of examples to batch in validation.')
+    parser.add_argument('--batch_size', type=int, default=100, help='Number of examples to batch in training.')
+    parser.add_argument('--valid_batch_size', type=int, default=100, help='Number of examples to batch in validation.')
     parser.add_argument('--valid_portion', type=float, default=0.1, help='Part of training set to use as validation.')
     parser.add_argument('--equal_labels', type='bool', default=False, help='Same amount of training example per label.')
     parser.add_argument('--max_epochs', type=int, default=1000, help='Maximum number of epochs to run.')
@@ -415,8 +415,8 @@ def train_lstm():
     parser.add_argument('--maxlen', type=int, default=-1, help='Max review length - if <0 no restriction.')
     parser.add_argument('--n_recurrent_layers', type=int, default=1, help='Number of recurrent layers.')
     parser.add_argument('--model_fname', type=str, default='lstm-model', help='File name to save / load the model.')
-    parser.add_argument('--use_dropout', type='bool', default=False, help='Use drop out.')
-    parser.add_argument('--test', type='bool', default=False, help='Load an existing model and make predictions.')
+    parser.add_argument('--use_dropout', type='bool', default=True, help='Use drop out.')
+    parser.add_argument('--test', type='bool', default=True, help='Load a model (or create one if not present) and make predictions.')
     parser.add_argument('--seed', type=int, default=354592017, help='Random seed.')
     args = parser.parse_args()
     print("\n~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~\nargs:", args)
@@ -479,7 +479,6 @@ def train_lstm():
     ###
     print('\nBuilding model...')
     (use_noise, x, mask, y, f_pred_prob, f_pred, cost) = build_model(tparams, args)
-    # (use_noise, x, seqlen, mask, y, f_pred_prob, f_pred, cost) = build_lasagne_model(tparams, args)
 
     ###
     # COMPILING THEANO FUNCTIONS
@@ -571,27 +570,6 @@ def train_lstm():
                     # print('mask:', mask.shape)
                     # print('y:', y)
                     # print('y:', y.shape)
-                    # for i in range(x.shape[1]):
-                    #     if np.all([w==0 for w in x[:,i]]):
-                    #         print("!!! all 0's for sample", i)
-                    # for kk, vv in params.items():
-                    #     print(kk, ':', vv.shape)
-
-                    # prob = f_pred_prob(x, mask)
-                    # print('prob:', prob)
-                    # nan_idx = -1
-                    # for i, a in enumerate(prob):
-                    #     if np.any(np.isnan(a)):
-                    #         nan_idx = i
-                    #         break
-                    # print('prob[range(x.shape[1]), y]:', prob[range(x.shape[1]), y] )
-                    # print('-log(.):', -np.log(prob[range(x.shape[1]), y]) )
-                    # print('.mean():', -np.log(prob[range(x.shape[1]), y]).mean() )
-                    # if nan_idx >= 0:
-                    #     print('review:', reviewIDX_to_reviewWORDS(x[:,nan_idx], idx2word))
-                    #     print('x[%d]:' % nan_idx, x[:,nan_idx])
-                    #     print('mask[%d]:' % nan_idx, mask[:,nan_idx])
-                    #     print('y[%d]:' % nan_idx, y[nan_idx])
 
                     cost = f_train(x, mask, y)
 
