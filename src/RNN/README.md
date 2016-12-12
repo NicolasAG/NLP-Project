@@ -1,4 +1,4 @@
-# Word to Vec features
+# LSTM RNN model
 
 First, you need to create a few directories:
 

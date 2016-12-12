@@ -85,12 +85,19 @@ mkdir LSTM-Models
 
 ## python requirements
 theano
+
 lasagne
+
 sklearn
+
 nltk
+
 numpy
+
 cPickle
+
 pandas
+
 gensim
 
 
