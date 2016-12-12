@@ -23,7 +23,7 @@ def make_worddict(sentences):
     counts = wordcount.values()
     sorted_idx = np.argsort(counts)[::-1]
 
-    word2idx = dict()
+    word2idx = {'UNK':0}
     idx2word = {0:'UNK'}
     for i, idx in enumerate(sorted_idx):
         word2idx[words[idx]] = i+1  # leave 0 for unseen words (UNK)

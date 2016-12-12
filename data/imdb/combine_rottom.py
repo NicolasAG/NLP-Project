@@ -17,7 +17,7 @@ def main():
     reviews = []
     sentiments = []
     ids = []
-    # current_sentence = -1
+    current_sentence = -1
     skipped = 0
     for row in rottom_train.itertuples():  # for each phrase: grab the 1st one that belongs to a sentence: ie: the sentence itself
         # index = row[0]
@@ -25,16 +25,18 @@ def main():
         sentence_id = row[2]
         phrase = row[3]
         sent = row[4]
-        # if sentence_id != current_sentence:  # if new sentence, grab this 1st phrase and its sentiment.
-        #     current_sentence = sentence_id
-        if sent > 2:
-            ids.append("\""+str(phrase_id)+"\"")
-            reviews.append("\""+phrase+"\"")
-            sentiments.append(1)
-        elif sent < 2:
-            ids.append("\""+str(phrase_id)+"\"")
-            reviews.append("\""+phrase+"\"")
-            sentiments.append(0)
+        if sentence_id != current_sentence:  # if new sentence, grab this 1st phrase and its sentiment.
+            current_sentence = sentence_id
+            if sent > 2:
+                ids.append("\""+str(phrase_id)+"\"")
+                reviews.append("\""+phrase+"\"")
+                sentiments.append(1)
+            elif sent < 2:
+                ids.append("\""+str(phrase_id)+"\"")
+                reviews.append("\""+phrase+"\"")
+                sentiments.append(0)
+            else:
+                skipped += 1
         else:
             skipped += 1
     assert len(ids) == len(reviews) == len(sentiments)
@@ -52,7 +54,7 @@ def main():
         columns=["id", "sentiment", "review"]
     )
     output = pd.concat([imdb_train, new_frames])
-    output.to_csv("./labeledTrainData_extendedFULL.tsv", sep='\t', index=False, quoting=3, quotechar='')
+    output.to_csv("./labeledTrainData_extended.tsv", sep='\t', index=False, quoting=3, quotechar='')
     print "done."
 
 
