@@ -16,3 +16,5 @@ with the following flags:
 - --optimizer  either 'adam' or 'adadelta' or 'rmsprop': optimiser algorithm to do parameter updates.
 - ... more of them in `lstm.py` file
 
+Model described in http://deeplearning.net/tutorial/lstm.html
+
