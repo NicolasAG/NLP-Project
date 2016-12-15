@@ -196,72 +196,6 @@ def lstm_layer(tparams, state_below, feature_size, mask):
     return rval[0]
 
 
-def build_lasagne_model(tparams, args):
-    # TODO DEBUG
-
-    forget_gate_bias = 2.0
-
-    # Used for dropout.
-    use_noise = theano.shared(numpy_floatX(0.), borrow=True)
-
-    x = T.matrix('x', dtype='int64')
-    x_seqlen = T.ivector('x_seqlen')
-    mask = T.matrix('mask', dtype=config.floatX)
-    y = T.vector('y', dtype='int64')
-
-    n_timesteps = x.shape[0]
-    n_samples = x.shape[1]
-
-    x_input = tparams['Wemb'][x.flatten()].reshape((
-        n_timesteps,
-        n_samples,
-        args.feature_size
-    ))
-
-    l_in = lasagne.layers.InputLayer(shape=(args.maxlen, args.batch_size, args.feature_size))
-    l_mask = lasagne.layers.InputLayer(shape=(args.maxlen, args.batch_size))
-
-    prev_fwd = l_in
-    for _ in xrange(args.n_recurrent_layers):
-        l_recurrent = lasagne.layers.LSTMLayer(
-            incoming=prev_fwd,
-            num_units=args.feature_size,
-            grad_clipping=10,
-            forgetgate=lasagne.layers.Gate(b=lasagne.init.Constant(forget_gate_bias)),
-            backwards=False,
-            learn_init=True,
-            peepholes=True,
-            mask_input=l_mask
-        )
-        prev_fwd = l_recurrent
-    l_out = prev_fwd
-
-    h_review = lasagne.layers.helper.get_output(
-        layer_or_layers=l_out,
-        inputs={l_in: x_input, l_mask: mask},
-        deterministic=False
-    )
-    e_review = h_review[T.arange(args.batch_size), x_seqlen].reshape((n_samples, args.feature_size))
-    o = T.nnet.sigmoid(e_review)
-    o = T.clip(o, 1e-7, 1.0 - 1e-7)
-    probas = T.concatenate([(1 - o).reshape((-1, 1)), o.reshape((-1, 1))], axis=1)
-    pred = T.argmax(probas, axis=1)
-    errors = T.sum(T.neq(pred, y))
-    cost = T.nnet.binary_crossentropy(o, y).mean()
-
-    lstm_params = lasagne.layers.get_all_params(l_out)
-    for i, p in enumerate(lstm_params):
-        tparams['lstm_%d' % i] = p
-    del tparams['lstm_W']
-    del tparams['lstm_U']
-    del tparams['lstm_b']
-
-    f_pred_prob = theano.function([x, x_seqlen, mask], probas, name='f_pred_prob', allow_input_downcast=True)
-    f_pred = theano.function([x, x_seqlen, mask], pred, name='f_pred', allow_input_downcast=True)
-
-    return use_noise, x, x_seqlen, mask, y, f_pred_prob, f_pred, cost
-
-
 def build_model(tparams, args):
     """
     Build prediction and cost functions based on Recurrent LSTM.
@@ -553,23 +487,11 @@ def train_lstm():
                     # Select the random examples for this minibatch
                     x = [train[0][t] for t in train_index]
                     y = [train[1][t] for t in train_index]
-                    # seqlen = [len(review) for review in x]
-                    # print('x:', np.asarray(x))
-                    # print('x:', np.asarray(x).shape)
-                    # for i, review in enumerate(x):
-                    #     if len(review) == 0:
-                    #         print("EMPTY REVIEW!!!! :o :o :o", i)
 
                     # Get the data in numpy.ndarray format
                     # This swap the axis! shape = (minibatch maxlen, n samples)
                     x, mask, y = prepare_data(x, y)
                     n_samples += x.shape[1]
-                    # print('x:', x)
-                    # print('x:', x.shape)
-                    # print('mask:', mask)
-                    # print('mask:', mask.shape)
-                    # print('y:', y)
-                    # print('y:', y.shape)
 
                     cost = f_train(x, mask, y)
 
